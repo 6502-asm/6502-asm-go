@@ -39,10 +39,14 @@ func (l *Lexer) NextToken() token.Token {
 	l.shipWhitespace()
 
 	switch l.ch {
-	case 'r':
-		t = newToken(token.IMMEDIATE, l.ch)
-	case '#':
-		t = newToken(token.ADDRES, l.ch)
+	case '\n', '\r':
+		t = token.FromByte(token.LINE, l.ch)
+	case ',':
+		t = token.FromByte(token.COMMA, l.ch)
+	case ';':
+		t = token.FromByte(token.SEMICOLON, l.ch)
+	case 'x':
+		t = token.FromByte(token.HEX, l.ch)
 	case 0:
 		t.Literal = ""
 		t.Type = token.EOF
@@ -54,8 +58,9 @@ func (l *Lexer) NextToken() token.Token {
 		} else if isDigit(l.ch) {
 			t.Type = token.NUMBER
 			t.Literal = l.readNumber()
+			return t
 		} else {
-			t = newToken(token.ILLEGAL, l.ch)
+			t = token.FromByte(token.ILLEGAL, l.ch)
 		}
 	}
 
@@ -65,7 +70,7 @@ func (l *Lexer) NextToken() token.Token {
 
 // skipWhitespace ignores whitespace characters.
 func (l *Lexer) shipWhitespace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+	for l.ch == ' ' || l.ch == '\t' {
 		l.readCh()
 	}
 }
@@ -88,14 +93,9 @@ func (l *Lexer) readNumber() string {
 	return l.input[position:l.pos]
 }
 
-// newToken creates a new token.
-func newToken(tokenType string, ch byte) token.Token {
-	return token.Token{Type: tokenType, Literal: string(ch)}
-}
-
 // isLetter determines if the given ch should be treated as a letter.
 func isLetter(ch byte) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+	return 'A' <= ch && ch <= 'Z'
 }
 
 // isDigit determines if the given ch should be treated as a digit.

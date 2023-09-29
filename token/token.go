@@ -1,16 +1,25 @@
 package token
 
 const (
+	SEMICOLON = ";"
+	COMMA     = ","
+	HEX       = "x"
 	NUMBER    = "NUMBER"
-	IMMEDIATE = "IMMEDIATE"
-	ADDRES    = "ADDRESS"
-	OP        = "OP"
-	ILLEGAL   = "ILLEGAL"
-	EOF       = "EOF"
+	LINE      = "LINE"
+
+	OP = "OP"
+
+	ILLEGAL = "ILLEGAL"
+	EOF     = "EOF"
 )
 
 // Token represents a single token produced by lexer.Lexer.
 type Token struct {
 	Type    string
 	Literal string
+}
+
+// FromByte creates a new token with given token type and char literal.
+func FromByte(tokenType string, ch byte) Token {
+	return Token{Type: tokenType, Literal: string(ch)}
 }

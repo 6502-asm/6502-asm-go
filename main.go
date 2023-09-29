@@ -1,25 +1,37 @@
 package main
 
 import (
+	"flag"
+	"fmt"
+	"log"
+	"os"
+
 	"6502-asm/lexer"
 	"6502-asm/token"
-	"fmt"
 )
 
 func main() {
-	l := lexer.New("LDAI 5\n" +
-		"LDBI 4\n" +
-		"SUM\n" +
-		"STA 5\n" +
-		"HLT",
-	)
+	// Read the source file
+	filename := flag.String("filename", "main.asm", "Name of the source file")
+	flag.Parse()
 
+	source, err := os.ReadFile(*filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Run lexer
+	l := lexer.New(string(source))
+
+	var tokens []token.Token
 	for {
-		t := l.NextToken()
-		fmt.Println("%v", t)
+		nextToken := l.NextToken()
+		tokens = append(tokens, nextToken)
 
-		if t.Type == token.EOF {
+		if nextToken.Type == token.EOF {
 			break
 		}
 	}
+
+	fmt.Printf("%+v", tokens)
 }
