@@ -7,11 +7,11 @@ import (
 )
 
 func TestLexer_NextToken(t *testing.T) {
-	input := `LDAI 5;
-LDBI 4;
-SUM;
-STA 0x05;
-HLT;
+	input := `LDAI 5 ; load 5 to A register
+LDBI 4 ; load 5 to 4 register
+SUM ; sum A and B registers
+STA 0x05 ; do some magic shit
+HLT ; end the program
 `
 
 	l := New(input)

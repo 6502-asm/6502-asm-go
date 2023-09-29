@@ -44,7 +44,7 @@ func (l *Lexer) NextToken() token.Token {
 	case ',':
 		t = token.FromByte(token.COMMA, l.ch)
 	case ';':
-		t = token.FromByte(token.SEMICOLON, l.ch)
+
 	case 'x':
 		t = token.FromByte(token.HEX, l.ch)
 	case 0:
