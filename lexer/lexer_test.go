@@ -17,22 +17,17 @@ HLT
 	l := New(input)
 
 	tests := []token.Token{
-		// LDAI 5;
 		{token.IDENT, "LDAI"},
 		{token.NUMBER, "5"},
 		{token.LINE, "\n"},
-		// LDBI 4;
 		{token.IDENT, "LDBI"},
 		{token.NUMBER, "4"},
 		{token.LINE, "\n"},
-		// SUM;
 		{token.IDENT, "SUM"},
 		{token.LINE, "\n"},
-		// STA 0x05;
 		{token.IDENT, "STA"},
 		{token.NUMBER, "0x05"},
 		{token.LINE, "\n"},
-		// HLD;
 		{token.IDENT, "HLT"},
 		{token.LINE, "\n"},
 		{token.EOF, ""},
