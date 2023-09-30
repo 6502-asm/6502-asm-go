@@ -7,53 +7,46 @@ import (
 )
 
 func TestLexer_NextToken(t *testing.T) {
-	input := `LDAI 5 ; load 5 to A register
-LDBI 4 ; load 5 to 4 register
-SUM ; sum A and B registers
-STA 0x05 ; do some magic shit
-HLT ; end the program
+	input := `LDAI 5 ; comment
+LDBI 4
+SUM
+STA 0x05
+HLT
 `
 
 	l := New(input)
 
 	tests := []token.Token{
 		// LDAI 5;
-		{token.OP, "LDAI"},
+		{token.IDENT, "LDAI"},
 		{token.NUMBER, "5"},
-		{token.SEMICOLON, ";"},
 		{token.LINE, "\n"},
 		// LDBI 4;
-		{token.OP, "LDBI"},
+		{token.IDENT, "LDBI"},
 		{token.NUMBER, "4"},
-		{token.SEMICOLON, ";"},
 		{token.LINE, "\n"},
 		// SUM;
-		{token.OP, "SUM"},
-		{token.SEMICOLON, ";"},
+		{token.IDENT, "SUM"},
 		{token.LINE, "\n"},
 		// STA 0x05;
-		{token.OP, "STA"},
-		{token.NUMBER, "0"},
-		{token.HEX, "x"},
-		{token.NUMBER, "05"},
-		{token.SEMICOLON, ";"},
+		{token.IDENT, "STA"},
+		{token.NUMBER, "0x05"},
 		{token.LINE, "\n"},
 		// HLD;
-		{token.OP, "HLT"},
-		{token.SEMICOLON, ";"},
+		{token.IDENT, "HLT"},
 		{token.LINE, "\n"},
 		{token.EOF, ""},
 	}
 
 	for i, testToken := range tests {
-		outToken := l.NextToken()
+		outToken := l.Next()
 
 		if outToken.Type != testToken.Type {
-			t.Fatalf("tests[%d]: invalid Type: expected=%q, got=%q", i, testToken.Type, outToken.Type)
+			t.Fatalf("tests[%d]: invalid Type: expected=%q, got=%q\n%+v\n%+v", i, testToken.Type, outToken.Type, testToken, outToken)
 		}
 
 		if outToken.Literal != testToken.Literal {
-			t.Fatalf("tests[%d]: invalid Literal: expected=%q, got %q", i, testToken.Literal, outToken.Literal)
+			t.Fatalf("tests[%d]: invalid Literal: expected=%q, got %q\n%+v\n%+v", i, testToken.Literal, outToken.Literal, testToken, outToken)
 		}
 	}
 }

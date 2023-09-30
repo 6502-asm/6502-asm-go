@@ -3,12 +3,11 @@ package token
 const (
 	SEMICOLON = ";"
 	COMMA     = ","
-	HEX       = "x"
-	NUMBER    = "NUMBER"
-	LINE      = "LINE"
 
-	OP = "OP"
+	NUMBER = "NUMBER"
+	IDENT  = "IDENT"
 
+	LINE    = "LINE"
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
 )
