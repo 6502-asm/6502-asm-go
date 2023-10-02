@@ -22,6 +22,7 @@ func New(l *lexer.Lexer) *Parser {
 	p := &Parser{l: l}
 	p.nextToken()
 	p.nextToken()
+
 	return p
 }
 
@@ -49,19 +50,24 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
-	// TODO: We might in fact want to rename IDENT into OPCODE.
-	case token.IDENT:
+	case token.OPCODE:
 		return p.parseOpcode()
 	}
+
 	return nil
 }
 
 func (p *Parser) parseOpcode() *ast.Opcode {
-	stmt := &ast.Opcode{Token: p.curToken, Operands: []ast.Expression{}}
+	stmt := &ast.Opcode{
+		Token:    p.curToken,
+		Operands: []ast.Expression{},
+	}
+
 	if !p.peekIs(token.LINE) {
 		stmt.Operands = p.parseOperands()
 	}
 	p.consume(token.LINE)
+
 	return stmt
 }
 
@@ -81,7 +87,7 @@ func (p *Parser) parseNumber() *ast.NumberLiteral {
 	var value int64
 	var err error
 
-	if strings.HasPrefix(p.curToken.Literal, "0X") {
+	if strings.HasPrefix(p.curToken.Literal, "0x") {
 		value, err = strconv.ParseInt(strings.TrimPrefix(p.curToken.Literal, "0x"), 16, 8)
 		if err != nil {
 			panic(err)

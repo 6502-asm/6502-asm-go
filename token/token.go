@@ -7,7 +7,7 @@ const (
 	COMMA     = ","
 
 	NUMBER = "NUMBER"
-	IDENT  = "IDENT"
+	OPCODE = "OPCODE"
 
 	LINE    = "LINE"
 	ILLEGAL = "ILLEGAL"

@@ -1,6 +1,8 @@
 package ast
 
-import "6502-asm/token"
+import (
+	"6502-asm/token"
+)
 
 type Node interface {
 	TokenLiteral() string
@@ -37,16 +39,19 @@ type Opcode struct {
 }
 
 func (o *Opcode) statementNode() {}
+
 func (o *Opcode) TokenLiteral() string {
 	return o.Token.Literal
 }
 
+// NumberLiteral ast node.
 type NumberLiteral struct {
 	Token token.Token
 	Value int8
 }
 
-func (bl *NumberLiteral) expressionNode() {}
-func (bl *NumberLiteral) TokenLiteral() string {
-	return bl.Token.Literal
+func (nl *NumberLiteral) expressionNode() {}
+
+func (nl *NumberLiteral) TokenLiteral() string {
+	return nl.Token.Literal
 }

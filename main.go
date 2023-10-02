@@ -1,10 +1,9 @@
 package main
 
 import (
-	"6502-asm/ast"
 	"6502-asm/parser"
 	"flag"
-	"fmt"
+	"github.com/sanity-io/litter"
 	"log"
 	"os"
 
@@ -26,5 +25,5 @@ func main() {
 	p := parser.New(l)
 
 	program := p.ParseProgram()
-	fmt.Printf("%+v", program.Statements[0].(*ast.Opcode).Operands[0])
+	litter.Dump(program)
 }
