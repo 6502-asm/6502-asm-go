@@ -40,7 +40,7 @@ func (l *Lexer) Next() token.Token {
 	default:
 		if isLetter(l.c) {
 			t.Literal = l.readIdent()
-			t.Type = token.IDENT
+			t.Type = token.OPCODE
 			return t
 		} else if isDigit(l.c) {
 			t.Type = token.NUMBER

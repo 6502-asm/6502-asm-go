@@ -1,11 +1,13 @@
 package token
 
+type Type string
+
 const (
 	SEMICOLON = ";"
 	COMMA     = ","
 
 	NUMBER = "NUMBER"
-	IDENT  = "IDENT"
+	OPCODE = "OPCODE"
 
 	LINE    = "LINE"
 	ILLEGAL = "ILLEGAL"
@@ -14,11 +16,11 @@ const (
 
 // Token represents a single token produced by lexer.Lexer.
 type Token struct {
-	Type    string
+	Type    Type
 	Literal string
 }
 
 // FromByte creates a new token with given token type and char literal.
-func FromByte(tokenType string, ch byte) Token {
+func FromByte(tokenType Type, ch byte) Token {
 	return Token{Type: tokenType, Literal: string(ch)}
 }
