@@ -28,7 +28,7 @@ func (l *Lexer) Next() token.Token {
 
 	switch l.c {
 	case '\n', '\r':
-		t = token.FromByte(token.LINE, l.c)
+		t = token.FromByte(token.NEWLINE, l.c)
 		break
 	case ',':
 		t = token.FromByte(token.COMMA, l.c)

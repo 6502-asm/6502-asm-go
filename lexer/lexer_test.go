@@ -19,17 +19,17 @@ HLT
 	tests := []token.Token{
 		{token.OPCODE, "LDAI"},
 		{token.NUMBER, "0x05"},
-		{token.LINE, "\n"},
+		{token.NEWLINE, "\n"},
 		{token.OPCODE, "LDBI"},
 		{token.NUMBER, "4"},
-		{token.LINE, "\n"},
+		{token.NEWLINE, "\n"},
 		{token.OPCODE, "SUM"},
-		{token.LINE, "\n"},
+		{token.NEWLINE, "\n"},
 		{token.OPCODE, "STA"},
 		{token.NUMBER, "0x05"},
-		{token.LINE, "\n"},
+		{token.NEWLINE, "\n"},
 		{token.OPCODE, "HLT"},
-		{token.LINE, "\n"},
+		{token.NEWLINE, "\n"},
 		{token.EOF, ""},
 	}
 
