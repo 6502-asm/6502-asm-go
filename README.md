@@ -13,8 +13,8 @@ Augmented Backus–Naur form
 ```
 program   ::= statement*
 statement ::= opcode "\n"
-opcode    ::= IDENT arguments?
-arguments ::= NUMBER | hex
+opcode    ::= IDENT operands?
+operands  ::= NUMBER | hex
 hex       ::= "0x" 2*hex-digit
 hex-digit ::= %x30-39 | %x41-46
 ```

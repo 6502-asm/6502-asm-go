@@ -1,6 +1,10 @@
 package parser
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	"6502-asm/ast"
 	"6502-asm/lexer"
 	"6502-asm/token"
@@ -49,24 +53,76 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.IDENT:
 		return p.parseOpcode()
 	}
-
 	return nil
 }
 
 func (p *Parser) parseOpcode() *ast.Opcode {
-	stmt := &ast.Opcode{Token: p.curToken}
-
-	// We want to scan all operands. It will be compiler's task to decide
-	// if given opcode has the right amount of operands.
-	for p.peekIs(token.NUMBER) {
-		// TODO: Parse numbers
+	stmt := &ast.Opcode{Token: p.curToken, Operands: []ast.Expression{}}
+	if !p.peekIs(token.LINE) {
+		stmt.Operands = p.parseOperands()
 	}
-
-	if !p.expectPeek(token.LINE) {
-		return nil
-	}
-
+	p.consume(token.LINE)
 	return stmt
+}
+
+func (p *Parser) parseOperands() []ast.Expression {
+	operands := []ast.Expression{}
+
+	p.nextToken()
+	for p.curToken.Type != token.LINE {
+		operands = append(operands, p.parseNumber())
+		p.nextToken()
+	}
+
+	return operands
+}
+
+func (p *Parser) parseNumber() *ast.NumberLiteral {
+	var value int64
+	var err error
+
+	if strings.HasPrefix(p.curToken.Literal, "0X") {
+		value, err = strconv.ParseInt(strings.TrimPrefix(p.curToken.Literal, "0x"), 16, 8)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		value, err = strconv.ParseInt(p.curToken.Literal, 10, 8)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return &ast.NumberLiteral{
+		Token: p.curToken,
+		Value: int8(value),
+	}
+}
+
+func (p *Parser) consume(t token.Type) {
+	if p.check(t) {
+		p.nextToken()
+		return
+	}
+
+	panic(fmt.Sprint("Expected token type: ", t))
+}
+
+func (p *Parser) match(t token.Type) bool {
+	if p.curToken.Type == t {
+		p.nextToken()
+		return true
+	}
+
+	return false
+}
+
+func (p *Parser) check(t token.Type) bool {
+	if p.curToken.Type == token.EOF {
+		return false
+	}
+
+	return true
 }
 
 func (p *Parser) peekIs(t token.Type) bool {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"6502-asm/ast"
 	"6502-asm/parser"
 	"flag"
 	"fmt"
@@ -25,5 +26,5 @@ func main() {
 	p := parser.New(l)
 
 	program := p.ParseProgram()
-	fmt.Printf("%+v", program)
+	fmt.Printf("%+v", program.Statements[0].(*ast.Opcode).Operands[0])
 }
