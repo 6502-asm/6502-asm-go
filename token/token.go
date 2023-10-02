@@ -3,13 +3,10 @@ package token
 type Type string
 
 const (
-	SEMICOLON = ";"
-	COMMA     = ","
-
-	NUMBER = "NUMBER"
-	OPCODE = "OPCODE"
-
-	LINE    = "LINE"
+	COMMA   = ","
+	NUMBER  = "NUMBER"
+	OPCODE  = "OPCODE"
+	NEWLINE = "NEWLINE"
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
 )
