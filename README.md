@@ -30,9 +30,24 @@ HLT
     &ast.Opcode{
       Token: token.Token{
         Type: "OPCODE",
+        Literal: "LDBI",
+      },
+      Operands: []ast.Expression{
+        &ast.NumberLiteral{
+          Token: token.Token{
+            Type: "NUMBER",
+            Literal: "4",
+          },
+          Value: 4,
+        },
+      },
+    },
+    &ast.Opcode{
+      Token: token.Token{
+        Type: "OPCODE",
         Literal: "SUM",
       },
-      Operands: []ast.Expression{},
+      Operands: []ast.Expression{}, // p0
     },
     &ast.Opcode{
       Token: token.Token{
@@ -48,6 +63,13 @@ HLT
           Value: 5,
         },
       },
+    },
+    &ast.Opcode{
+      Token: token.Token{
+        Type: "OPCODE",
+        Literal: "HLT",
+      },
+      Operands: p0,
     },
   },
 }
