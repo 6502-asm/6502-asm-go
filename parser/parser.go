@@ -77,11 +77,7 @@ func (p *Parser) parseOperands() []ast.Expression {
 	operands := []ast.Expression{}
 
 	p.nextToken()
-	for {
-		if p.currIs(token.EOF) || p.currIs(token.NEWLINE) {
-			break
-		}
-
+	for !p.currIs(token.EOF) && !p.currIs(token.NEWLINE) {
 		operands = append(operands, p.parseNumber())
 		p.nextToken()
 	}
@@ -128,9 +124,4 @@ func (p *Parser) consume(t token.Type) bool {
 // currIs checks if current token has the given token type.
 func (p *Parser) currIs(t token.Type) bool {
 	return p.currToken.Type == t
-}
-
-// peekIs checks if peek token has the given token type.
-func (p *Parser) peekIs(t token.Type) bool {
-	return p.peekToken.Type == t
 }
