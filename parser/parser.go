@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -11,23 +12,22 @@ import (
 
 // Parser generates AST from tokens produced by given lexer.
 type Parser struct {
-	l         *lexer.Lexer
-	currToken token.Token
-	peekToken token.Token
+	l     *lexer.Lexer
+	token token.Token
 }
 
-// New creates a new parser.
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{l: l}
-	p.nextToken()
-	p.nextToken()
+	p := &Parser{
+		l: l,
+	}
+
+	p.advance()
+
 	return p
 }
 
-// nextToken advances the parser tokens.
-func (p *Parser) nextToken() {
-	p.currToken = p.peekToken
-	p.peekToken = p.l.Next()
+func (p *Parser) advance() {
+	p.token = p.l.Next()
 }
 
 // ParseProgram parses the tokens producing an ast.
@@ -38,14 +38,14 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 	p.ignoreNewLines()
 
-	for p.currToken.Type != token.EOF {
+	for !p.match(token.EOF) {
 		stmt := p.parseStatement()
 		if stmt != nil {
 			program.Statements = append(program.Statements, stmt)
 		}
 
-		if !p.currIs(token.EOF) {
-			p.consume(token.NEWLINE)
+		if !p.check(token.EOF) {
+			p.consume(token.NEWLINE, "Expected a new line")
 			p.ignoreNewLines()
 		}
 	}
@@ -54,8 +54,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 }
 
 func (p *Parser) parseStatement() ast.Statement {
-	switch p.currToken.Type {
-	case token.OPCODE:
+	if p.check(token.OPCODE) {
 		return p.parseOpcode()
 	}
 
@@ -64,9 +63,10 @@ func (p *Parser) parseStatement() ast.Statement {
 
 func (p *Parser) parseOpcode() *ast.Opcode {
 	stmt := &ast.Opcode{
-		Token:    p.currToken,
+		Token:    p.token,
 		Operands: []ast.Expression{},
 	}
+	p.advance()
 
 	stmt.Operands = p.parseOperands()
 
@@ -76,10 +76,9 @@ func (p *Parser) parseOpcode() *ast.Opcode {
 func (p *Parser) parseOperands() []ast.Expression {
 	operands := []ast.Expression{}
 
-	p.nextToken()
-	for !p.currIs(token.EOF) && !p.currIs(token.NEWLINE) {
+	for !p.check(token.EOF) && !p.check(token.NEWLINE) {
 		operands = append(operands, p.parseNumber())
-		p.nextToken()
+		p.advance()
 	}
 
 	return operands
@@ -89,10 +88,10 @@ func (p *Parser) parseNumber() *ast.NumberLiteral {
 	var value int64
 	var err error
 
-	if strings.HasPrefix(p.currToken.Literal, "0x") {
-		value, err = strconv.ParseInt(strings.TrimPrefix(p.currToken.Literal, "0x"), 16, 8)
+	if strings.HasPrefix(p.token.Literal, "0x") {
+		value, err = strconv.ParseInt(strings.TrimPrefix(p.token.Literal, "0x"), 16, 8)
 	} else {
-		value, err = strconv.ParseInt(p.currToken.Literal, 10, 8)
+		value, err = strconv.ParseInt(p.token.Literal, 10, 8)
 	}
 
 	if err != nil {
@@ -100,28 +99,39 @@ func (p *Parser) parseNumber() *ast.NumberLiteral {
 	}
 
 	return &ast.NumberLiteral{
-		Token: p.currToken,
+		Token: p.token,
 		Value: int8(value),
 	}
 }
 
 // ignoreNewLines consumes unused new line tokens.
 func (p *Parser) ignoreNewLines() {
-	for p.consume(token.NEWLINE) {
+	for p.match(token.NEWLINE) {
 	}
 }
 
-// consume advances parser only if the next token is of the given type.
-func (p *Parser) consume(t token.Type) bool {
-	if p.currToken.Type == t {
-		p.nextToken()
+// check checks if current token is of the given type.
+func (p *Parser) check(t token.Type) bool {
+	return p.token.Type == t
+}
+
+// match checks if the next token is of the given type.
+func (p *Parser) match(t token.Type) bool {
+	if p.token.Type == t {
+		p.advance()
 		return true
 	}
-
 	return false
 }
 
-// currIs checks if current token has the given token type.
-func (p *Parser) currIs(t token.Type) bool {
-	return p.currToken.Type == t
+// consume advances parser only if the next token is of the given type.
+// Returns the consumed token.
+// If the next token is not of the specified type throws an error with given message.
+func (p *Parser) consume(t token.Type, message string) (token.Token, error) {
+	if p.token.Type == t {
+		p.advance()
+		return p.token, nil
+	}
+
+	return token.Token{}, fmt.Errorf(message)
 }
