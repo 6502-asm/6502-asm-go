@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"6502-asm/token"
+	"asm/token"
 )
 
 type Node interface {
@@ -20,7 +20,6 @@ type Expression interface {
 	expressionNode()
 }
 
-// Program node
 type Program struct {
 	Statements []Statement
 }

@@ -1,10 +1,9 @@
 package lexer
 
 import (
-	"6502-asm/token"
+	"asm/token"
 )
 
-// Lexer transforms the input source into slice of tokens.
 type Lexer struct {
 	input   string
 	pos     int
@@ -13,14 +12,12 @@ type Lexer struct {
 	line    int
 }
 
-// New creates a new instance of Lexer.
 func New(input string) *Lexer {
 	l := &Lexer{input: input, line: 1}
 	l.advance()
 	return l
 }
 
-// Next generates the next token from input source.
 func (l *Lexer) Next() token.Token {
 	var t token.Token
 
@@ -106,7 +103,6 @@ func (l *Lexer) readNumber() string {
 	return l.input[position:l.pos]
 }
 
-// peek gives a single char of lookahead
 func (l *Lexer) peek() byte {
 	if l.isAtEnd() {
 		return 0

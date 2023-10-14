@@ -5,12 +5,11 @@ import (
 	"strconv"
 	"strings"
 
-	"6502-asm/ast"
-	"6502-asm/lexer"
-	"6502-asm/token"
+	"asm/ast"
+	"asm/lexer"
+	"asm/token"
 )
 
-// Error represents error reported by the parser in case of invalid token stream.
 type Error struct {
 	Token   token.Token
 	Message string
@@ -25,14 +24,12 @@ func (pe *Error) Unwrap() error {
 	return pe.Cause
 }
 
-// Parser generates AST from tokens produced by given lexer.
 type Parser struct {
 	l         *lexer.Lexer
 	currToken token.Token
 	peekToken token.Token
 }
 
-// New creates a new parser.
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{l: l}
 	p.nextToken()
@@ -40,13 +37,11 @@ func New(l *lexer.Lexer) *Parser {
 	return p
 }
 
-// nextToken advances the parser tokens.
 func (p *Parser) nextToken() {
 	p.currToken = p.peekToken
 	p.peekToken = p.l.Next()
 }
 
-// ParseProgram parses the tokens producing an ast.
 func (p *Parser) ParseProgram() (*ast.Program, []error) {
 	var errors []error
 
@@ -96,7 +91,6 @@ func (p *Parser) parseLabel() (*ast.Label, error) {
 	return &ast.Label{Token: ident}, nil
 }
 
-// parseOpcode parses the token as an opcode.
 func (p *Parser) parseOpcode() (*ast.Opcode, error) {
 	ident, err := p.consume(token.IDENTIFIER, "expected opcode identifier")
 	if err != nil {
@@ -119,7 +113,6 @@ func (p *Parser) parseOpcode() (*ast.Opcode, error) {
 	return opcode, nil
 }
 
-// parseOperands is a helper for parsing a list of operands.
 func (p *Parser) parseOperands() ([]ast.Expression, error) {
 	var operands []ast.Expression
 
@@ -150,7 +143,6 @@ func (p *Parser) parseOperands() ([]ast.Expression, error) {
 	return operands, nil
 }
 
-// parseNumber parses the token as a number.
 func (p *Parser) parseNumber() (*ast.NumberLiteral, error) {
 	var value int64
 	var err error
@@ -175,7 +167,6 @@ func (p *Parser) parseNumber() (*ast.NumberLiteral, error) {
 	}, nil
 }
 
-// ignoreNewLines consumes unused new line tokens.
 func (p *Parser) ignoreNewLines() {
 	for p.match(token.NEWLINE) {
 	}
@@ -206,12 +197,10 @@ func (p *Parser) match(t token.Type) bool {
 	return false
 }
 
-// currIs checks if current token has the given token type.
 func (p *Parser) currIs(t token.Type) bool {
 	return p.currToken.Type == t
 }
 
-// peekIs checks if peek token has the given token type.
 func (p *Parser) peekIs(t token.Type) bool {
 	return p.peekToken.Type == t
 }

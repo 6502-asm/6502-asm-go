@@ -1,4 +1,4 @@
-module 6502-asm
+module asm
 
 go 1.21
 

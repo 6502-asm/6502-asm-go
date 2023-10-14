@@ -3,7 +3,7 @@ package lexer
 import (
 	"testing"
 
-	"6502-asm/token"
+	"asm/token"
 )
 
 func TestLexer_Next(t *testing.T) {

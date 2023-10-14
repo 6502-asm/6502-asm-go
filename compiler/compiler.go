@@ -1,7 +1,7 @@
 package compiler
 
 import (
-	"6502-asm/ast"
+	"asm/ast"
 )
 
 type Error struct {
