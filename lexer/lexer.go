@@ -10,11 +10,12 @@ type Lexer struct {
 	pos     int
 	readPos int
 	c       byte
+	line    int
 }
 
 // New creates a new instance of Lexer.
 func New(input string) *Lexer {
-	l := &Lexer{input: input}
+	l := &Lexer{input: input, line: 1}
 	l.advance()
 	return l
 }
@@ -27,27 +28,36 @@ func (l *Lexer) Next() token.Token {
 	l.skipComment()
 
 	switch l.c {
-	case '\n', '\r':
-		t = token.FromByte(token.NEWLINE, l.c)
+	case '\n':
+		t = token.FromByte(token.NEWLINE, l.c, l.line)
+		l.line++
 		break
 	case ',':
-		t = token.FromByte(token.COMMA, l.c)
+		t = token.FromByte(token.COMMA, l.c, l.line)
+		break
+	case ':':
+		t = token.FromByte(token.COLON, l.c, l.line)
 		break
 	case 0:
-		t.Literal = ""
-		t.Type = token.EOF
+		t = token.FromByte(token.EOF, 0, l.line)
 		break
 	default:
 		if isLetter(l.c) {
-			t.Literal = l.readIdent()
-			t.Type = token.OPCODE
+			t = token.Token{
+				Type:    token.IDENTIFIER,
+				Literal: l.readOpcode(),
+				Line:    l.line,
+			}
 			return t
 		} else if isDigit(l.c) {
-			t.Type = token.NUMBER
-			t.Literal = l.readNumber()
+			t = token.Token{
+				Type:    token.NUMBER,
+				Literal: l.readNumber(),
+				Line:    l.line,
+			}
 			return t
 		} else {
-			t = token.FromByte(token.ILLEGAL, l.c)
+			t = token.FromByte(token.ILLEGAL, l.c, l.line)
 		}
 	}
 
@@ -67,7 +77,7 @@ func (l *Lexer) advance() {
 }
 
 func (l *Lexer) skipWhitespace() {
-	for l.c == ' ' || l.c == '\t' {
+	for l.c == ' ' || l.c == '\t' || l.c == '\r' {
 		l.advance()
 	}
 }
@@ -80,7 +90,7 @@ func (l *Lexer) skipComment() {
 	}
 }
 
-func (l *Lexer) readIdent() string {
+func (l *Lexer) readOpcode() string {
 	position := l.pos
 	for isLetter(l.c) {
 		l.advance()
@@ -110,7 +120,7 @@ func (l *Lexer) isAtEnd() bool {
 }
 
 func isLetter(c byte) bool {
-	return 'A' <= c && c <= 'Z'
+	return 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z'
 }
 
 // TODO: We cannot do that because if isDigit will be used together with isLetter things can break. We might want to create isHexDigit function that would be used after initial check with isDigit.

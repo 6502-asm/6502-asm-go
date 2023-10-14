@@ -32,7 +32,6 @@ func (p *Program) TokenLiteral() string {
 	return ""
 }
 
-// Opcode node
 type Opcode struct {
 	Token    token.Token
 	Operands []Expression
@@ -44,7 +43,16 @@ func (o *Opcode) TokenLiteral() string {
 	return o.Token.Literal
 }
 
-// NumberLiteral ast node.
+type Label struct {
+	Token token.Token
+}
+
+func (l *Label) statementNode() {}
+
+func (l *Label) TokenLiteral() string {
+	return l.Token.Literal
+}
+
 type NumberLiteral struct {
 	Token token.Token
 	Value int8

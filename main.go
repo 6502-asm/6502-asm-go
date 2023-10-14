@@ -11,7 +11,8 @@ import (
 )
 
 func main() {
-	// Read the source file
+	lgr := log.New(os.Stderr, "", 0)
+
 	filename := flag.String("filename", "program.asm", "Name of the source file")
 	flag.Parse()
 
@@ -20,10 +21,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Parse
 	l := lexer.New(string(source))
 	p := parser.New(l)
 
-	program := p.ParseProgram()
-	litter.Dump(program)
+	ast, errs := p.ParseProgram()
+
+	if errs != nil {
+		for _, err := range errs {
+			lgr.Println(err)
+		}
+	} else {
+		litter.Config.DisablePointerReplacement = true
+		litter.Dump(ast)
+	}
 }

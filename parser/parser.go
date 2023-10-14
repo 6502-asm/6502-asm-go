@@ -10,98 +10,155 @@ import (
 	"6502-asm/token"
 )
 
-// Parser generates AST from tokens produced by given lexer.
-type Parser struct {
-	l     *lexer.Lexer
-	token token.Token
+// Error represents error reported by the parser in case of invalid token stream.
+type Error struct {
+	Token   token.Token
+	Message string
+	Cause   error
 }
 
+func (pe *Error) Error() string {
+	return fmt.Sprintf("[line %v] Error at '%v':\n\t%v", pe.Token.Line, pe.Token.Literal, pe.Message)
+}
+
+func (pe *Error) Unwrap() error {
+	return pe.Cause
+}
+
+// Parser generates AST from tokens produced by given lexer.
+type Parser struct {
+	l         *lexer.Lexer
+	currToken token.Token
+	peekToken token.Token
+}
+
+// New creates a new parser.
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{
-		l: l,
-	}
-
-	p.advance()
-
+	p := &Parser{l: l}
+	p.nextToken()
+	p.nextToken()
 	return p
 }
 
-func (p *Parser) advance() {
-	p.token = p.l.Next()
+// nextToken advances the parser tokens.
+func (p *Parser) nextToken() {
+	p.currToken = p.peekToken
+	p.peekToken = p.l.Next()
 }
 
 // ParseProgram parses the tokens producing an ast.
-func (p *Parser) ParseProgram() *ast.Program {
+func (p *Parser) ParseProgram() (*ast.Program, []error) {
+	var errors []error
+
 	program := &ast.Program{
 		Statements: []ast.Statement{},
 	}
 
 	p.ignoreNewLines()
 
-	for !p.match(token.EOF) {
-		stmt := p.parseStatement()
+	for p.currToken.Type != token.EOF {
+		stmt, err := p.parseStatement()
+
+		if err != nil {
+			errors = append(errors, err)
+			p.nextToken()
+		}
+
 		if stmt != nil {
 			program.Statements = append(program.Statements, stmt)
 		}
 
-		if !p.check(token.EOF) {
-			p.consume(token.NEWLINE, "Expected a new line")
+		if !p.currIs(token.EOF) {
+			p.match(token.NEWLINE)
 			p.ignoreNewLines()
 		}
 	}
 
-	return program
+	return program, errors
 }
 
-func (p *Parser) parseStatement() ast.Statement {
-	if p.check(token.OPCODE) {
-		return p.parseOpcode()
+func (p *Parser) parseStatement() (ast.Statement, error) {
+	if p.peekIs(token.COLON) {
+		return p.parseLabel()
 	}
 
-	return nil
+	return p.parseOpcode()
 }
 
-func (p *Parser) parseOpcode() *ast.Opcode {
-	stmt := &ast.Opcode{
-		Token:    p.token,
+func (p *Parser) parseLabel() (*ast.Label, error) {
+	ident, err := p.consume(token.IDENTIFIER, "expected label identifier")
+	if err != nil {
+		return nil, err
+	}
+
+	p.nextToken()
+
+	return &ast.Label{Token: ident}, nil
+}
+
+// parseOpcode parses the token as an opcode.
+func (p *Parser) parseOpcode() (*ast.Opcode, error) {
+	ident, err := p.consume(token.IDENTIFIER, "expected opcode identifier")
+	if err != nil {
+		return nil, err
+	}
+
+	opcode := &ast.Opcode{
+		Token:    ident,
 		Operands: []ast.Expression{},
 	}
-	p.advance()
 
-	stmt.Operands = p.parseOperands()
-
-	return stmt
-}
-
-func (p *Parser) parseOperands() []ast.Expression {
-	operands := []ast.Expression{}
-
-	for !p.check(token.EOF) && !p.check(token.NEWLINE) {
-		operands = append(operands, p.parseNumber())
-		p.advance()
+	if p.currIs(token.NUMBER) {
+		operands, err := p.parseOperands()
+		if err != nil {
+			return nil, err
+		}
+		opcode.Operands = operands
 	}
 
-	return operands
+	return opcode, nil
 }
 
-func (p *Parser) parseNumber() *ast.NumberLiteral {
+// parseOperands is a helper for parsing a list of operands.
+func (p *Parser) parseOperands() ([]ast.Expression, error) {
+	var operands []ast.Expression
+
+	for !p.currIs(token.EOF) && !p.currIs(token.NEWLINE) {
+		number, err := p.parseNumber()
+		if err != nil {
+			return nil, err
+		}
+
+		operands = append(operands, number)
+		p.nextToken()
+	}
+
+	return operands, nil
+}
+
+// parseNumber parses the token as a number.
+func (p *Parser) parseNumber() (*ast.NumberLiteral, error) {
 	var value int64
 	var err error
 
-	if strings.HasPrefix(p.token.Literal, "0x") {
-		value, err = strconv.ParseInt(strings.TrimPrefix(p.token.Literal, "0x"), 16, 8)
+	if strings.HasPrefix(p.currToken.Literal, "0x") {
+		value, err = strconv.ParseInt(strings.TrimPrefix(p.currToken.Literal, "0x"), 16, 8)
 	} else {
-		value, err = strconv.ParseInt(p.token.Literal, 10, 8)
+		value, err = strconv.ParseInt(p.currToken.Literal, 10, 8)
 	}
 
 	if err != nil {
-		panic(err)
+		return nil, &Error{
+			Token:   p.currToken,
+			Message: "expected a number expression",
+			Cause:   err,
+		}
 	}
 
 	return &ast.NumberLiteral{
-		Token: p.token,
+		Token: p.currToken,
 		Value: int8(value),
-	}
+	}, nil
 }
 
 // ignoreNewLines consumes unused new line tokens.
@@ -110,28 +167,37 @@ func (p *Parser) ignoreNewLines() {
 	}
 }
 
-// check checks if current token is of the given type.
-func (p *Parser) check(t token.Type) bool {
-	return p.token.Type == t
+// consume checks if current token is of the given type. If so returns the token and advances.
+// Otherwise, returns an Error with given message.
+func (p *Parser) consume(t token.Type, message string) (token.Token, error) {
+	if p.currIs(t) {
+		previous := p.currToken
+		p.nextToken()
+		return previous, nil
+	}
+
+	return token.Token{}, &Error{
+		Token:   p.currToken,
+		Message: message,
+	}
 }
 
-// match checks if the next token is of the given type.
+// match advances parser only if the current token is of the given type.
 func (p *Parser) match(t token.Type) bool {
-	if p.token.Type == t {
-		p.advance()
+	if p.currToken.Type == t {
+		p.nextToken()
 		return true
 	}
+
 	return false
 }
 
-// consume advances parser only if the next token is of the given type.
-// Returns the consumed token.
-// If the next token is not of the specified type throws an error with given message.
-func (p *Parser) consume(t token.Type, message string) (token.Token, error) {
-	if p.token.Type == t {
-		p.advance()
-		return p.token, nil
-	}
+// currIs checks if current token has the given token type.
+func (p *Parser) currIs(t token.Type) bool {
+	return p.currToken.Type == t
+}
 
-	return token.Token{}, fmt.Errorf(message)
+// peekIs checks if peek token has the given token type.
+func (p *Parser) peekIs(t token.Type) bool {
+	return p.peekToken.Type == t
 }
