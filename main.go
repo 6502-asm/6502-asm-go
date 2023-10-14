@@ -1,8 +1,10 @@
 package main
 
 import (
+	"6502-asm/compiler"
 	"6502-asm/parser"
 	"flag"
+	"fmt"
 	"github.com/sanity-io/litter"
 	"log"
 	"os"
@@ -34,4 +36,11 @@ func main() {
 		litter.Config.DisablePointerReplacement = true
 		litter.Dump(ast)
 	}
+
+	c := compiler.New()
+	if err := c.Compile(ast); err != nil {
+		lgr.Println(err)
+	}
+
+	fmt.Printf("% #x\n", c.Instructions)
 }

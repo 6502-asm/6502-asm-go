@@ -38,7 +38,6 @@ type Opcode struct {
 }
 
 func (o *Opcode) statementNode() {}
-
 func (o *Opcode) TokenLiteral() string {
 	return o.Token.Literal
 }
@@ -48,18 +47,25 @@ type Label struct {
 }
 
 func (l *Label) statementNode() {}
-
 func (l *Label) TokenLiteral() string {
 	return l.Token.Literal
 }
 
+type LabelRef struct {
+	Token token.Token
+}
+
+func (lr *LabelRef) expressionNode() {}
+func (lr *LabelRef) TokenLiteral() string {
+	return lr.Token.Literal
+}
+
 type NumberLiteral struct {
 	Token token.Token
-	Value int8
+	Value byte
 }
 
 func (nl *NumberLiteral) expressionNode() {}
-
 func (nl *NumberLiteral) TokenLiteral() string {
 	return nl.Token.Literal
 }

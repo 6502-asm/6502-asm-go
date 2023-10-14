@@ -108,7 +108,7 @@ func (p *Parser) parseOpcode() (*ast.Opcode, error) {
 		Operands: []ast.Expression{},
 	}
 
-	if p.currIs(token.NUMBER) {
+	if !p.currIs(token.NEWLINE) {
 		operands, err := p.parseOperands()
 		if err != nil {
 			return nil, err
@@ -124,12 +124,26 @@ func (p *Parser) parseOperands() ([]ast.Expression, error) {
 	var operands []ast.Expression
 
 	for !p.currIs(token.EOF) && !p.currIs(token.NEWLINE) {
-		number, err := p.parseNumber()
-		if err != nil {
-			return nil, err
+		var operand ast.Expression
+
+		if p.currIs(token.NUMBER) {
+			var err error
+			operand, err = p.parseNumber()
+			if err != nil {
+				return nil, err
+			}
+		} else if p.currIs(token.IDENTIFIER) {
+			operand = &ast.LabelRef{Token: p.currToken}
 		}
 
-		operands = append(operands, number)
+		if operand == nil {
+			return nil, &Error{
+				Token:   p.currToken,
+				Message: "expected label reference of number literal",
+			}
+		}
+
+		operands = append(operands, operand)
 		p.nextToken()
 	}
 
@@ -157,7 +171,7 @@ func (p *Parser) parseNumber() (*ast.NumberLiteral, error) {
 
 	return &ast.NumberLiteral{
 		Token: p.currToken,
-		Value: int8(value),
+		Value: byte(value),
 	}, nil
 }
 

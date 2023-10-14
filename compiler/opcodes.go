@@ -183,15 +183,21 @@ const (
 	OpHLT
 )
 
-var arities = map[byte]int{
-	OpLDXI:  1,
-	OpZEROY: 0,
-	OpMOVAY: 0,
-	OpMOVBX: 0,
-	OpADD:   0,
-	OpDECX:  0,
-	OpMOVYA: 0,
-	OpTESTX: 0,
-	OpJMPNZ: 1,
-	OpHLT:   0,
+type Definition struct {
+	Opcode byte
+	Arity  int
+}
+
+var definitions = map[string]Definition{
+
+	"LDXI":  {OpLDXI, 1},
+	"ZEROY": {OpZEROY, 0},
+	"MOVAY": {OpMOVAY, 0},
+	"MOVBX": {OpMOVBX, 0},
+	"ADD":   {OpADD, 0},
+	"DECX":  {OpDECX, 0},
+	"MOVYA": {OpMOVYA, 0},
+	"TESTX": {OpTESTX, 0},
+	"JMPNZ": {OpJMPNZ, 1},
+	"HLT":   {OpHLT, 0},
 }
